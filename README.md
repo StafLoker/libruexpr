@@ -111,10 +111,6 @@ A `NUMBER → NUMBER` function receives and returns a `Decimal`. Before each cal
 
 - A placeholder is at most 500 characters (`Placeholder.MAX_LENGTH`), and parentheses and unary minus nest at most 20 levels (`Placeholder.MAX_NESTING`); beyond that, `LimitExceededError`.
 - Arithmetic runs in `Decimal`: `0.1 + 0.2` gives exactly `0.3`; division is exact to 28 significant digits.
-- A placeholder calls only registered functions, and values from `data` are never parsed as placeholders.
-- Registered functions run with the privileges of the application: the library neither isolates them nor limits their time. The result is not escaped for the output format.
-- `register` changes the engine and the other methods only read it: register all functions before using the engine from several threads.
-- Error messages are in English; tell errors apart by class (all inherit from `TexprError`).
 
 ## Requirements
 
