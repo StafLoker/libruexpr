@@ -1,3 +1,22 @@
+#############
+## Project ##
+#############
+
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Personal notes, not published
+temp_docs/
+
+
 ###########
 ## MacOS ##
 ###########
@@ -68,18 +87,3 @@ $RECYCLE.BIN/
 
 # Built Visual Studio Code Extensions
 *.vsix
-
-#############
-## Project ##
-#############
-
-# Python-generated files
-__pycache__/
-*.py[oc]
-build/
-dist/
-wheels/
-*.egg-info
-
-# Virtual environments
-.venv
