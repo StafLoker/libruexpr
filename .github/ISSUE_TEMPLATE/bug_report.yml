@@ -1,0 +1,25 @@
+name: Bug report
+description: Something is not working as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: The smallest code that shows the problem, with the expected and the actual result.
+      placeholder: |
+        from libtexpr import Engine, Placeholder
+
+        engine = Engine()
+        print(engine.evaluate(Placeholder.parse("ДОЛГ.СУММА * 2"), {"ДОЛГ.СУММА": "1 000,5"}))
+      render: python
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: libtexpr and Python versions
+      placeholder: "0.1.0, Python 3.12"
+    validations:
+      required: true
