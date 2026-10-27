@@ -271,7 +271,7 @@ class Engine:
     def validate(self, placeholder: Placeholder, schema: Mapping[str, FieldType]) -> list[Issue]:
         """Check ``placeholder`` against ``schema`` and the registered functions.
 
-        ``schema`` maps a field path (``"ПОЛЕ"``, ``"ДОЛГ.СУММА"``) to its type.
+        ``schema`` maps a field name (``"ПОЛЕ"``, ``"ДОЛГ.СУММА"``) to its type.
 
         Returns every issue found, not only the first; an empty list means it can be
         evaluated. After an unknown function the type flowing through the pipeline is

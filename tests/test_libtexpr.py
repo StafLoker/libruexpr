@@ -112,7 +112,6 @@ def issues(w: SimpleNamespace, src: str) -> list[IssueKind]:
         ("{debt}.Σ", UnexpectedCharacterError, 5),
         ("1.2.3", InvalidNumberError, 0),
         ("({x}", UnexpectedTokenError, 4),
-        ("{debt}.", UnexpectedTokenError, 5),
         ("{x} | {case}:", UnexpectedTokenError, None),
     ],
 )

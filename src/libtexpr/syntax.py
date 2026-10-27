@@ -90,7 +90,7 @@ class Placeholder:
     def parse(cls, src: str) -> Self:
         """Parse the text inside one ``[...]``, without the brackets.
 
-        Field names are UPPERCASE, optionally dotted (``ПОЛЕ``, ``DEBT.AMOUNT``); function
+        Field names are UPPERCASE and may contain dots (``ПОЛЕ``, ``DEBT.AMOUNT``); function
         names and bare words are lowercase. Letters are Latin or Cyrillic. Raises a :class:`ParseError`
         subclass carrying the failing position. A text longer than ``MAX_LENGTH``, or
         parentheses and unary minus nested deeper than ``MAX_NESTING``, raises
@@ -148,7 +148,6 @@ class _Kind(Enum):
     UPPER = auto()
     LOWER = auto()
     NUMBER = auto()
-    DOT = auto()
     PIPE = auto()
     COLON = auto()
     COMMA = auto()
@@ -163,7 +162,6 @@ class _Kind(Enum):
 @dataclass(frozen=True, slots=True)
 class _Token:
     PUNCTUATION: ClassVar[dict[str, _Kind]] = {
-        ".": _Kind.DOT,
         "|": _Kind.PIPE,
         ":": _Kind.COLON,
         ",": _Kind.COMMA,
@@ -195,7 +193,7 @@ class _Token:
                 end = cls._scan(src, i, lambda c: _is_digit(c) or c == ".")
                 tokens.append(cls(_Kind.NUMBER, src[i:end], i))
             elif _is_upper(ch):
-                end = cls._scan(src, i, lambda c: _is_upper(c) or _is_digit(c) or c == "_")
+                end = cls._scan(src, i, lambda c: _is_upper(c) or _is_digit(c) or c in "_.")
                 tokens.append(cls(_Kind.UPPER, src[i:end], i))
             elif _is_lower(ch):
                 end = cls._scan(src, i, lambda c: _is_lower(c) or c == "_")
@@ -302,19 +300,12 @@ class _Parser:
             case _Kind.NUMBER:
                 node = token.number()
             case _Kind.UPPER:
-                node = self._field_ref(token)
+                node = token.text
             case _Kind.LOWER:
                 node = token.text
             case _:
                 raise token.expected("a value")
         return node
-
-    def _field_ref(self, first: _Token) -> str:
-        path = first.text
-
-        while self._take(_Kind.DOT):
-            path += "." + self._expect(_Kind.UPPER, "field name").text
-        return path
 
     def _call(self) -> Call:
         args: list[str] = []
@@ -332,7 +323,7 @@ class _Parser:
 
         match token.kind:
             case _Kind.UPPER:
-                arg = self._field_ref(token)
+                arg = token.text
             case _Kind.LOWER:
                 arg = token.text
             case _Kind.NUMBER:

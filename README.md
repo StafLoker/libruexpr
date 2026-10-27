@@ -67,7 +67,7 @@ A placeholder is a **value** followed by a chain of functions separated by `|`:
 | Placeholder                              | What it does                                       |
 | ---------------------------------------- | -------------------------------------------------- |
 | `[ПОЛЕ]`                                 | takes the value of a field                         |
-| `[ДОЛГ.СУММА]`, `[А.Б.В]`                | field with a multi-part path                       |
+| `[ДОЛГ.СУММА]`, `[А.Б.В]`                | a field name may contain dots, e.g. as a hierarchy |
 | `[родился]`                              | a word as plain text                               |
 | `[100]`, `[-ПОЛЕ]`                       | a number                                           |
 | `[(ДОЛГ.СУММА + ПЕНИ.СУММА) * 0.01]`     | arithmetic: `+ - * /` and parentheses              |
