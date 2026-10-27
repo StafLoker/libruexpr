@@ -1,0 +1,114 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+  attestations: write
+  id-token: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  publish-pypi:
+    needs: ci
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Check that the tag matches the package version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: test "v$(uv version --short)" = "$TAG"
+
+      - name: Build package
+        run: uv build
+
+      - name: Publish to PyPI
+        run: uv publish
+
+      - name: Upload dist artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/*
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: dist/*
+
+  github-release:
+    needs: publish-pypi
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$GITHUB_REF_NAME" >> $GITHUB_OUTPUT
+
+      - uses: actions/checkout@v6
+
+      - name: Extract changelog for version
+        id: changelog
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          NOTES=$(awk -v h="## [$VERSION]" 'index($0, h) == 1 {found=1; next} found && /^## \[/ {exit} found {print}' CHANGELOG.md)
+          DELIMITER="EOF_$(openssl rand -hex 8)"
+          {
+            echo "notes<<$DELIMITER"
+            echo "$NOTES"
+            echo "$DELIMITER"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Download dist artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "${{ steps.version.outputs.tag }}"
+          generate_release_notes: true
+          body: |
+            # libtexpr ${{ steps.version.outputs.tag }}
+
+            ## Changelog
+
+            ${{ steps.changelog.outputs.notes }}
+
+            ## Install
+
+            ### Latest
+            ```bash
+            uv add libtexpr
+            ```
+
+            ### Versioned
+            ```bash
+            uv add libtexpr==${{ steps.version.outputs.version }}
+            ```
+          files: dist/*
